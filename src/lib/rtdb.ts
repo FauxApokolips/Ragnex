@@ -1,6 +1,6 @@
 import { rtdb } from "./firebase";
 import {
-  ref, push, set, onChildAdded, onValue, query, limitToLast, startAt, get, off
+  ref, push, set, onChildAdded, update,onValue, query, limitToLast, startAt, get, off
 } from "firebase/database";
 
 // ---- Rooms ----
@@ -51,6 +51,11 @@ export async function setTyping(roomId: string, uid: string, val: boolean) {
 export function listenTyping(roomId: string, cb: (map: Record<string, boolean>) => void) {
   const r = ref(rtdb, `typing/${roomId}`);
   return onValue(r, (snap) => cb(snap.val() || {}));
+}
+
+export async function setUserAvatar(uid: string, avatarUrl: string): Promise<void> {
+  if (!uid) throw new Error("setUserAvatar: missing uid");
+  await update(ref(rtdb, `users/${uid}`), { avatar: avatarUrl });
 }
 
 // ---- Presence ----
