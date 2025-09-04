@@ -15,7 +15,7 @@ export async function createRoom(name: string, uid: string) {
 
 export function listenRooms(cb: (rooms: Record<string, any>) => void) {
   const r = ref(rtdb, "rooms");
-  const unsub = onValue(r, (snap) => cb(snap.val() || {}));
+  const _unsub = onValue(r, (snap) => cb(snap.val() || {}));
   return () => off(r);
 }
 
@@ -38,9 +38,11 @@ export function listenRecentMessages(roomId: string, pageSize = 50, onAdd: (msg:
 export async function fetchOlder(roomId: string, startTimestamp: number, pageSize = 50) {
   const q = query(ref(rtdb, `messages/${roomId}`), startAt(startTimestamp), limitToLast(pageSize));
   const snap = await get(q);
-  const arr: any[] = [];
-  snap.forEach((c) => arr.push({ id: c.key, ...c.val() }));
-  return arr;
+const data = snap.val() as Record<string, Record<string, unknown>> | null;
+const arr = data
+  ? Object.entries(data).map(([id, v]) => ({ id, ...v }))
+  : [];
+return arr;
 }
 
 // ---- Typing ----
@@ -64,7 +66,7 @@ export function goOnline(uid: string) {
   set(statusRef, { state: "online", lastChanged: Date.now() });
 
   const connectedRef = ref(rtdb, ".info/connected");
-  const unsub = onValue(connectedRef, (snap) => {
+  const _unsub = onValue(connectedRef, (snap) => {  
     if (snap.val() === false) return;
     import("firebase/database").then(({ onDisconnect }) => {
       onDisconnect(statusRef).set({ state: "offline", lastChanged: Date.now() });
