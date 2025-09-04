@@ -33,18 +33,22 @@ export default function ProfilePage() {
 
   async function save() {
     try {
-      setSaving(true);
-      await setUserAvatar(user.uid, url.trim());
-      await updateProfile(user, { photoURL: url.trim() || null! as any });
-      setMsg("Saved!");
-      setTimeout(() => setMsg(null), 1500);
-    } catch (e) {
-      console.error(e);
-      setMsg("Failed to save");
-      setTimeout(() => setMsg(null), 1500);
-    } finally {
-      setSaving(false);
-    }
+  setSaving(true);
+
+  if (!user) throw new Error("Not signed in");
+
+  await setUserAvatar(user.uid, url.trim());
+  await updateProfile(user, { photoURL: url.trim() || null });
+
+  setMsg("Saved!");
+  setTimeout(() => setMsg(null), 1500);
+} catch (e) {
+  console.error(e);
+  setMsg("Failed to save.");
+} finally {
+  setSaving(false);
+}
+
   }
 
   async function useGooglePhoto() {
